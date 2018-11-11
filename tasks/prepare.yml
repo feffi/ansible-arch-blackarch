@@ -1,0 +1,57 @@
+- name: Create BlackArch temporary build directory
+  tempfile:
+    state: directory
+    prefix: "{{ ansible_blackarch.tmp }}"
+  register: ansible_blackarch_temp
+
+- name: Fetch BlackArch gpg keyring
+  get_url:
+    url: "{{ ansible_blackarch.keyring.url }}"
+    dest: "{{ ansible_blackarch_temp.path }}/{{ ansible_blackarch.keyring.url | urlsplit('path') | basename }}"
+  register: curl_blackarch_keyring_result
+  retries: 3
+  delay: 3
+
+- name: Fetch BlackArch gpg keyring signature
+  get_url:
+    url: "{{ ansible_blackarch.keyring.sig }}"
+    dest: "{{ ansible_blackarch_temp.path }}/{{ ansible_blackarch.keyring.sig | urlsplit('path') | basename }}"
+  register: curl_blackarch_keyring_signature_result
+  retries: 3
+  delay: 3
+
+- name: Receive BlackArch gpg signing key
+  shell: "gpg --keyserver hkp://pool.sks-keyservers.net --recv-keys {{ ansible_blackarch.keyring.key.id }} 2>&1"
+  register: gpg_recv_key_result
+  failed_when:
+    - "gpg_recv_key_result.rc != 0"
+    - "((\"key {{ ansible_blackarch.keyring.key.id[-16:] }}: \"{{ ansible_blackarch.keyring.key.owner }}\" not changed\" not in gpg_recv_key_result.stdout) or (\"key {{ ansible_blackarch.keyring.key[-16:] }}: public key \"{{ ansible_blackarch.keyring.key.owner }}\" imported\" not in gpg_recv_key_result.stdout))"
+  retries: 3
+  delay: 3
+
+- name: Validate gpg keyring signature
+  shell: "gpg --verify --keyserver-options no-auto-key-retrieve --with-fingerprint {{ curl_blackarch_keyring_signature_result.dest }} {{ curl_blackarch_keyring_result.dest }} 2>&1"
+  args:
+    chdir: "{{ ansible_blackarch_temp.path }}"
+  register: blackarch_keyring_validation_result
+  failed_when: "blackarch_keyring_validation_result.rc != 0 and ('Good signature from \"{{ ansible_blackarch.keyring.key.owner }}\" [unknown]' not in blackarch_keyring_validation_result.stdout)"
+  changed_when: false
+
+- name: Make sure /etc/pacman.d/gnupg is usable
+  shell: "pacman-key --init"
+  changed_when: false
+
+- name: Remove gpg keyring signature (else it will give error on import to pacman)
+  file:
+    state: absent
+    path: "{{ curl_blackarch_keyring_signature_result.dest }}"
+
+- name: Install the BlackArch gpg keyring to pacman
+  shell: "pacman --config /dev/null --noconfirm -U {{ curl_blackarch_keyring_result.dest }}"
+  register: pacman_key_install_result
+  failed_when: "'Appending keys from blackarch.gpg' not in pacman_key_install_result.stdout"
+
+- name: Cleanup BlackArch temporary build directory
+  file:
+    state: absent
+    path: "{{ ansible_blackarch_temp.path }}"

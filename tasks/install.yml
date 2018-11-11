@@ -1,0 +1,18 @@
+---
+- name: Fetch BlackArch mirror
+  get_url:
+    url: "https://www.blackarch.org/{{ ansible_blackarch.mirror }}"
+    dest: "/etc/pacman.d/{{ ansible_blackarch.mirror }}"
+
+
+#- debug:
+#    msg: "{{ pacman_key_install_result }}"
+
+#  echo 'perform full system upgrade? (pacman -Su) [Yn]:'
+#  read conf < /dev/tty
+#  case "$conf" in
+#    ''|y|Y) pacman -Su ;;
+#    n|N) warn 'some blackarch packages may not work without an up-to-date system.' ;;
+#  esac
+
+#  msg 'BlackArch Linux is ready!'

@@ -1,0 +1,26 @@
+---
+- name: Update ArchLinux keyring
+  pacman:
+    name: "archlinux-keyring"
+    state: present
+  retries: 3
+  delay: 3
+
+- name: Update pacman keyring keys
+  shell: "pacman-key --refresh-keys"
+  retries: 3
+  delay: 3
+
+- name: Insert/update "[blackarch]" configuration block in /etc/pacman.conf
+  blockinfile:
+    path: /etc/pacman.conf
+    block: |
+      [blackarch]
+      Include = /etc/pacman.d/{{ ansible_blackarch.mirror }}
+
+- name: Install BlackArch categories
+  pacman:
+    name: "{{ ansible_blackarch.categories }}"
+    update_cache: yes
+  retries: 3
+  delay: 3
