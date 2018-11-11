@@ -6,7 +6,3 @@
 - include_tasks: prepare.yml
 - include_tasks: configure.yml
 - include_tasks: install.yml
-
-
-# TODO
-# user strap.sh as template for native ansible install
