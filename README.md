@@ -7,9 +7,11 @@ Ansible role bootstrap blackarch.
 ## Role Defaults Variables
 
 ```yaml
-ansible_blackarch: {
+  # Temporary installation files go here: /tmp/{{ prefix }}/...
   tmp: "BlackArch-1337",
+  # The BlackArch mirror list to use
   mirror: "blackarch-mirrorlist",
+  # Settings for the BlackArch keyring, signature, etc.
   keyring: {
     url: "https://www.blackarch.org/keyring/blackarch-keyring.pkg.tar.xz",
     sig: "https://www.blackarch.org/keyring/blackarch-keyring.pkg.tar.xz.sig",
@@ -18,6 +20,7 @@ ansible_blackarch: {
       owner: "Evan Teitelman <teitelmanevan@gmail.com>"
     }
   },
+  # The BlackArch categories to install, also see 'sudo pacman -Sg | grep blackarch'
   categories: [
     "blackarch",
     #"blackarch-webapp",
@@ -81,14 +84,18 @@ Example:
 - hosts: all
   vars:
     ansible_blackarch:
+      # Temporary installation files go here: /tmp/{{ prefix }}/...
       tmp: "BlackArch-1337"
+      # The BlackArch mirror list to use
       mirror: "blackarch-mirrorlist"
+      # Settings for the BlackArch keyring, signature, etc.
       keyring:
         url: "https://www.blackarch.org/keyring/blackarch-keyring.pkg.tar.xz"
         sig: "https://www.blackarch.org/keyring/blackarch-keyring.pkg.tar.xz.sig"
         key:
           id: "4345771566D76038C7FEB43863EC0ADBEA87E4E3"
           owner: "Evan Teitelman <teitelmanevan@gmail.com>"
+      # The BlackArch categories to install, also see 'sudo pacman -Sg | grep blackarch'
       categories:
         - "blackarch"
         #- "blackarch-webapp"
