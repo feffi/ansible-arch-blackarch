@@ -2,8 +2,8 @@
 - hosts: 127.0.0.1
   connection: local
   vars:
-    ansible_blackarch:
+    ansible_arch_blackarch:
       categories:
         - "blackarch"
   roles:
-    - { role: ansible-blackarch }
+    - { role: ansible-arch-blackarch }
